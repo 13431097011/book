@@ -5,7 +5,12 @@ module.exports = function(app){
 	app.get('/', function(req, res) {
 		var p = 1;
 			if(req.query.p){
-				p = req.query.p;
+			p = req.query.p;
+		}
+		var searchData = req.query._id;
+		var query = null;
+		if(searchData){
+			query = {_id:searchData};
 		}
 		Book.get(function(err,rows,total,cando){
 			if(err){
@@ -16,13 +21,13 @@ module.exports = function(app){
 				res.render('index', {user:req.session.user,lists:rows,page:P,cando:cando});	
 			});
 			
-		},p,req.session.user);
+		},p,req.session.user,query);
 	});
 	app.get('/mybook',checkLogin);
 	app.get('/mybook',function(req,res){
 		var p = 1;
-			if(req.query.p){
-				p = req.query.p;
+		if(req.query.p){
+			p = req.query.p;
 		}
 		Book.get(function(err,rows,total,cando){
 			if(err){
@@ -192,6 +197,24 @@ module.exports = function(app){
 		});
 	});
 	app.get('/search',function(req,res){
+		var title = req.query.key;
+		var query = {title:{$regex:new RegExp(title)}};
+		Book.getbysearch(query,function(err,books){
+			if(err){
+				books = [];
+			}
+			var rows = [];
+			books.forEach(function(book){
+				var o = {};
+				o.label = book.title;
+				o.id = book._id;
+				o.value = book.title;
+				rows.push(o);
+			});
+			
+			res.send(rows);
+		});
+		
 		
 	});
 	
@@ -262,6 +285,8 @@ module.exports = function(app){
 		}
 		callback(P);
 	}
+	
+	
 	
 	
 	

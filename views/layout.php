@@ -10,7 +10,26 @@
 		
         <link rel="stylesheet" type="text/css" href="/javascripts/jqui/jquery-ui.min.css" />
 		<script src="/javascripts/jquery-1.11.2.min.js"></script>
+		<script src="/javascripts/jqui/jquery-ui.min.js"></script>
 		<script src="/javascripts/seajs.3.0.js"></script>
+		<script>
+		version = 20151221;
+		var __cdn__ = '/javascripts/';
+		seajs.config({
+			base: __cdn__ + 'app/',
+			map: [[/^(.*\jsdev\/.*\.(?:css|js))(?:.*)$/i, '$1?' + version]],
+			alias: {
+				jq:__cdn__+ 'jqui/jquery-ui.min.js',
+				Msg: __cdn__ + 'comm/Msg.js',
+				M: __cdn__ + 'comm/app.dialog.js',
+				Tpl: __cdn__ + 'comm/app.Tpl.js',
+				replaceVars: __cdn__ + 'comm/fn.replaceVars.js',
+				D: __cdn__ + 'app.Calendar.js',
+				$D: __cdn__ + 'app.Date.js',
+			}
+		});
+		seajs.use('common');
+		</script>
     </head>
     <body>
         <div class="wrapper">
@@ -247,24 +266,5 @@
         <div class="footer">
                 Copyright © 2015-2025 博雅互动 (Boyaa Interactive)
             </div>
-        
-       
-    </body>
+     </body>
 </html>
-<script>
-version = 20151221;
-var __cdn__ = '/javascripts/';
-seajs.config({
-	base: __cdn__ + 'app/',
-	map: [[/^(.*\jsdev\/.*\.(?:css|js))(?:.*)$/i, '$1?' + version]],
-	alias: {
-		Msg: __cdn__ + 'comm/Msg.js',
-		M: __cdn__ + 'comm/app.dialog.js',
-		Tpl: __cdn__ + 'comm/app.Tpl.js',
-		replaceVars: __cdn__ + 'comm/fn.replaceVars.js',
-		D: __cdn__ + 'app.Calendar.js',
-		$D: __cdn__ + 'app.Date.js',
-	}
-});
-seajs.use('common');
-</script>

@@ -5,8 +5,11 @@
 		    <div class="set_time form_normal_audited">
 		        <div class="base">
 		            <span class="find_box">
+						<form id='searchfrom' method='get'>
 		                 <input id="search_cname" class="txt_ipt ic ico_find ui-autocomplete-input" type="text" name="keyword" placeholder="书名/作者/拥有人"/>
-		                 <button type="button" class="btn_search"></button>
+						 <button type="button" class="btn_search"></button>
+						 <input type='hidden' name='_id' value=''>
+						</from>
 		            </span>
 		        </div>
 		        <div class="set_pages">

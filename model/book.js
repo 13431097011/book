@@ -175,8 +175,11 @@ Book.dels = function(ids,callback){
 	});
 	 
 }
-book.getbysearch = function(name,callback){
-	bookModel.find({title:new RegExp(name)},function(err,books){
+Book.getbysearch = function(query,callback){
+	if(!query){
+		return callback(1);
+	}
+	bookModel.find(query,function(err,books){
 		if(err){
 			return callback(err);
 		}
