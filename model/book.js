@@ -157,6 +157,20 @@ Book.id = function(id,callback){
 		callback(null,book);
 	});
 }
+
+Book.ids = function(ids,callback){
+	bookModel.find({_id:{$in:ids}},function(err,books){
+		var rs = {};
+		if(err){
+			return callback(err);
+		}
+		books.forEach(function(b){
+			rs[b._id] = b;
+		});
+		
+		callback(null,rs);
+	})
+}
 Book.del = function(id,callback){
 	bookModel.remove({_id:id},function(err,book){
 		if(err){
@@ -175,7 +189,14 @@ Book.dels = function(ids,callback){
 	});
 	 
 }
-Book.getbysearch = function(query,callback){
+/**
+ * type 默认是查标题。如果有指 则是查作者
+ * @param {type} query
+ * @param {type} callback
+ * @param {type} type
+ * @returns {unresolved}
+ */
+Book.getbysearch = function(query,callback,type,data){
 	if(!query){
 		return callback(1);
 	}
@@ -183,7 +204,24 @@ Book.getbysearch = function(query,callback){
 		if(err){
 			return callback(err);
 		}
-		callback(null,books);
+		var rs = [];
+		if(data){
+			rs = rs.concat(data);
+		}
+		books.forEach(function(o){
+			var row = {};
+			row.id = o._id;
+			row.label = o.title;
+			row.value = o.title;
+			
+			if(type){
+				row.label = o.autor;
+				row.value = o.autor;
+			}
+			rs.push(row);
+			
+		});
+		callback(null,rs);
 	});
 }
 

@@ -7,6 +7,7 @@ var mongodb = require('mongodb');
 var bodyParser = require('body-parser');
 var session = require('express-session');
 var Handlebars = require('handlebars');
+var request = require('request');
 Handlebars.registerHelper('eq',function(num1,num2,options){
 	if(num1==num2){
 		return options.fn(this);
@@ -29,7 +30,11 @@ app.engine('php',exphbs({
 app.set('view engine','php');
 app.use(session({
   secret:settings.cookieSecret,
-  cookie:{maxAge:1000 * 60 *60 *24 * 30},//30 days
+  cookie:{
+	  maxAge:1000 * 60 *60 *24 * 30,
+	  domain:'.oa.com',
+	  path:'/'
+  },//30 days
   key:settings.db,
   resave:true,
   store:new MongoStore({

@@ -1,16 +1,20 @@
 var User = require('../model/user.js');
 var Book = require('../model/book.js');
 var Borrow = require('../model/borrow.js');
+var request = require('request');
+
 module.exports = function(app){
+	
+	app.get('/',checkLogin);
 	app.get('/', function(req, res) {
 		var p = 1;
 			if(req.query.p){
 			p = req.query.p;
 		}
-		var searchData = req.query._id;
+		var searchData = req.query.search;
 		var query = null;
-		if(searchData){
-			query = {_id:searchData};
+		if(typeof searchData !='undefined'&&searchData['_id']&&searchData['keyword']){
+			query = {_id:searchData['_id']};
 		}
 		Book.get(function(err,rows,total,cando){
 			if(err){
@@ -18,7 +22,7 @@ module.exports = function(app){
 			}
 			createPage(p,5,total,function(P){
 				
-				res.render('index', {user:req.session.user,lists:rows,page:P,cando:cando});	
+				res.render('index', {title:'书籍库',user:req.session.user,lists:rows,page:P,cando:cando});	
 			});
 			
 		},p,req.session.user,query);
@@ -29,16 +33,46 @@ module.exports = function(app){
 		if(req.query.p){
 			p = req.query.p;
 		}
+		var query = {mid:req.session.user.mid};
+		
+		var searchData = req.query.search;
+		if(typeof searchData !='undefined'&&searchData['_id']&&searchData['keyword']){
+			query['_id'] =searchData['_id'];
+			delete query['mid'];
+		}
 		Book.get(function(err,rows,total,cando){
 			if(err){
 				rows = [];
 			}
 			createPage(p,5,total,function(P){
 				
-				res.render('mybook', {user:req.session.user,lists:rows,page:P,cando:cando});	
+				res.render('index', {title:'我的图书',user:req.session.user,lists:rows,page:P,cando:cando});	
 			});
 			
-		},p,req.session.user,{mid:req.session.user.mid});
+		},p,req.session.user,query);
+	});
+	app.get("/borrow",checkLogin);
+	app.get("/borrow",function(req, res){
+		var p = 1;
+		if(req.query.p){
+			p = req.query.p;
+		}
+		var query = {mid:req.session.user.mid};
+		
+		var searchData = req.query.search;
+		if(typeof searchData !='undefined'&&searchData['_id']&&searchData['keyword']){
+			query['bid'] =searchData['_id'];
+			delete query['mid'];
+		}
+		Borrow.get(query,p,function(err,rows,total){
+			if(err){
+				rows = [];
+			}
+			createPage(p,5,total,function(P){
+				res.render('borrow', {title:'我的借书记录',user:req.session.user,lists:rows,page:P});	
+			});
+			
+		});
 	});
 	app.post("/borrow",checkLogin);
 	app.post("/borrow",function(req,res){
@@ -93,7 +127,6 @@ module.exports = function(app){
 			if(err){
 				book = {};
 			}
-			console.log(book);
 			res.render('content', {user:req.session.user,book:book});	
 		});
 	});
@@ -172,7 +205,20 @@ module.exports = function(app){
 	});
 	app.get('/logout',function(req,res){
 		req.session.user = null;
-		res.redirect('/');
+		
+		 //res.clearcookie('admin_uid');
+		 //res.clearcookie('admin_name');
+		 //res.clearcookie('admin_cname');
+		// res.clearcookie('admin_key');
+		res.cookie('admin_uid',"null",{maxAge:0, httpOnly:true, path:'/',domain:'.oa.com'});
+		res.cookie('admin_name',"null",{maxAge:0, httpOnly:true, path:'/',domain:'.oa.com'});
+		res.cookie('admin_cname',"null",{maxAge:0, httpOnly:true, path:'/',domain:'.oa.com'});
+		res.cookie('admin_key',"null",{maxAge:0, httpOnly:true, path:'/',domain:'.oa.com'});
+		//req.cookie('admin_uid','');
+		//res.cookie('admin_uid', '', {maxAge:-1, httpOnly:true, path:'/'});
+		//res.cookie('admin_key', '', {maxAge:-1, httpOnly:true, path:'/'});
+		return res.redirect('http://sso.oa.com/Index/login/appid/1058');
+		//return res.redirect('http://www.baidu.com');
 	});
 	app.post('/login',checkNotLogin);
 	app.post('/login',function(req,res){
@@ -196,36 +242,90 @@ module.exports = function(app){
 			return res.redirect('/');
 		});
 	});
+	
 	app.get('/search',function(req,res){
 		var title = req.query.key;
-		var query = {title:{$regex:new RegExp(title)}};
+		var query = {
+			title:{$regex:new RegExp(title)},
+		};
 		Book.getbysearch(query,function(err,books){
 			if(err){
 				books = [];
 			}
-			var rows = [];
-			books.forEach(function(book){
-				var o = {};
-				o.label = book.title;
-				o.id = book._id;
-				o.value = book.title;
-				rows.push(o);
-			});
+			Book.getbysearch({autor:{$regex:new RegExp(title)}},function(err,data){
+				if(err){
+					data = [];
+				}
+				res.send(data);
+				
+			},1,books);
 			
-			res.send(rows);
 		});
-		
-		
 	});
 	
 	
 	
 	function checkLogin(req,res,next){
+		var user = null;
 		if(!req.session.user){
-			req.flash('error','未登录！');
-			return res.redirect('/login');
+			var admin_uid = req.query.admin_uid;
+			var admin_key = req.query.admin_key;
+			if(admin_uid&&admin_key){
+				var ssourl ='http://sso.oa.com:8871/api?do=getInfo&uid='+admin_uid+'&key='+admin_key+'&appid=1058';
+				request.get({
+					url:ssourl,
+				},function(error, response, body){
+					var json = JSON.parse(body);
+					user = {};
+					user.name = json.cname;
+					user.mid = parseInt(json.code);
+					req.session.user = user;
+					if(!user){
+						req.flash('error','未登录！');
+						return res.redirect('http://sso.oa.com/Index/login/appid/1058');
+					}
+					User.Mid(user.mid,function(err,rs){
+							if(!err&&!rs){
+								var newuser = {
+									name:user.name,
+									mid:user.mid
+								};
+								var o = new User(newuser);
+								o.save(function(err,newuser){});
+							}
+							next();
+					});
+					
+					
+				});
+			}else{
+				req.flash('error','未登录！');
+				return res.redirect('http://sso.oa.com/Index/login/appid/1058');
+			}
+		}else{
+			var diyuid = req.query.diyuid;
+			if(diyuid&&diyuid!=req.session.user.mid){
+				var admin_uid = req.cookies['admin_uid'];
+				var admin_key = req.cookies['admin_key'];
+				
+				var ssourl ='http://sso.oa.com:8871/api?do=getInfo&uid='+admin_uid+'&key='+admin_key+'&appid=1058';
+			
+				request.get({
+					url:ssourl,
+				},function(error, response, body){
+					var json = JSON.parse(body);
+					user = {};
+					user.name = json.cname;
+					user.mid = parseInt(json.code);
+					req.session.user = user;
+				});
+			}
+			next();
 		}
-		next();
+		
+		
+		
+		
 	}
 	function checkNotLogin(req,res,next){
 		
@@ -235,6 +335,8 @@ module.exports = function(app){
 		}
 		next();
 	}
+	
+	
 	function createPage(p,pagesize,total,callback){
 		var P = {
 			pages:[],

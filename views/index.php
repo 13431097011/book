@@ -1,14 +1,14 @@
 <div class="clock">
 		    <div class="oneTab cl">
-		    	<h3>书籍库</h3>
+		    	<h3>{{title}}</h3>
 		    </div>
 		    <div class="set_time form_normal_audited">
 		        <div class="base">
 		            <span class="find_box">
 						<form id='searchfrom' method='get'>
-		                 <input id="search_cname" class="txt_ipt ic ico_find ui-autocomplete-input" type="text" name="keyword" placeholder="书名/作者/拥有人"/>
+		                 <input id="search_cname" class="txt_ipt ic ico_find ui-autocomplete-input" type="text" name="search[keyword]" placeholder="书名"/>
 						 <button type="button" class="btn_search"></button>
-						 <input type='hidden' name='_id' value=''>
+						 <input type='hidden' name='search[_id]' value=''>
 						</from>
 		            </span>
 		        </div>

@@ -3,7 +3,6 @@ var mongoose = require('./db');
 
 var userSchema = new mongoose.Schema({
 	name:String,
-	pwd:String,
 	mid:Number
 },{
 	collection:"users"
@@ -11,14 +10,11 @@ var userSchema = new mongoose.Schema({
 var userModel = mongoose.model('User',userSchema);
 function User(user){
 	this.name = user.name;
-	this.pwd = user.pwd;
 	this.mid = user.mid;
 };
 User.prototype.save = function(callback){
-	var md5 = crypto.createHash('md5');
 	var user = {
 		name:this.name,
-		pwd :md5.update(this.pwd).digest('hex'),
 		mid :this.mid
 	};
 	var newUser = new userModel(user);
@@ -38,6 +34,7 @@ User.get = function(name,callback){
 		callback(null,user);
 	});
 };
+
 User.getId = function(mid,callback){
 	userModel.findOne({mid:mid},function(err,user){
 		if(err){
@@ -59,7 +56,6 @@ function inArray(a,b){
 
 
 User.findInMid = function(data,callback){
-	
 	var mids = data.mid;
 	var borrowmids = data.borrowmid;
 	var ids = mids.concat(borrowmids);
@@ -79,6 +75,14 @@ User.findInMid = function(data,callback){
 		callback(null,ret);
 	});
 };
+User.Mid = function(mid,callback){
+	userModel.findOne({mid:mid},function(err,user){
+		if(err){
+			return callback(err);
+		}
+		callback(null,user);
+	});
+}
 //User.getMid = function(mid,callback){
 //	userModel.findOne({mid:mid},function(err,user){
 //		if(err){

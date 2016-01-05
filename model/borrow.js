@@ -1,4 +1,6 @@
 var mongoose = require("./db");
+var User = require("./user");
+var Book = require("./book");
 var borrowSchema = new mongoose.Schema({
 	mid:Number,
 	bid:mongoose.Schema.Types.ObjectId,
@@ -15,7 +17,7 @@ function Borrow(mid,bid,bookmid){
 	this.bookmid = bookmid;
 }
 var borrowModel = mongoose.model('Borrow',borrowSchema);
-
+var pagesize = 5;
 Borrow.prototype.save = function(callback){
 	var date = new Date();
 	var time = {
@@ -88,6 +90,64 @@ Borrow.returnbook = function(id,curruser,callback){
 		
 	});
 };
+Borrow.get = function(query,p,callback){
+	if(!p||p<=1){
+		p = 1;
+	}
+	var skip  = (p-1)*pagesize;
+	if(!query){
+		query = {};
+	}
+	borrowModel.count(query,function(err,total){
+		if(err){
+			return callback(err);
+		}
+	
+		borrowModel.find(query).limit(pagesize).skip(skip).sort({createTime:-1}).exec(function(err,borrows){
+			if(err){
+				return callback(err);
+			}
+		
+			var bookmids = [];
+			var bookids = []; 
+			borrows.forEach(function(u){
+				bookmids.push(u.bookmid);
+				bookids.push(u.bid);
+				if(u.status == 1){
+					u.statusTXT = '已归还';
+				}else{
+					u.statusTXT = '还没还';
+				}
+			});
+			
+			if(bookmids.length>0){
+				User.findInMid({mid:bookmids,borrowmid:[]},function(err,users){
+					if(err){
+						return callback(err);
+					}
+					borrows.forEach(function(b){
+						b.bookmidCname = users.mids[b.bookmid];
+					});
+					if(bookids.length>0){
+						Book.ids(bookids,function(err,books){
+							if(!err){
+								borrows.forEach(function(b){
+									b.booktitle = books[b.bid]['title'];
+								});
+							}
+							callback(null,borrows,total);
+						});
+					}else{
+						callback(null,borrows,total);
+					}
+				});
+			}else{
+				callback(null,borrows,total);
+			}
+		});
+		
+	});
+}
 
 
 module.exports = Borrow;

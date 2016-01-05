@@ -68,7 +68,7 @@ define(function(require){
 			$("#addrole").click(function(){
 				window.location = "/newbook";
 			});
-			$("input[name='keyword']").autocomplete({
+			$("#search_cname").autocomplete({
 				source: function(request, response) {
 					  
 					  var result = [];
@@ -94,7 +94,7 @@ define(function(require){
 
 				},
 				select:function(event,ui){
-				   $("input[name='_id']").val(ui.item.id);
+				   $("input[name='search[_id]']").val(ui.item.id);
 				   $("input.btn_search").click();
 				}
 		   });

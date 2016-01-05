@@ -22,7 +22,8 @@
 	"markdown": "~0.5.0",
 	"multer":"~0.1.6",
 	"express-handlebars":"*",
-	"mongoose":"*"
+	"mongoose":"*",
+	"request":"*"
 	
   }
 }

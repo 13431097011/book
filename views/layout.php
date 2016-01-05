@@ -234,7 +234,7 @@
 							</dd>
 							<dt><a>借书管理：</a></dt>
 							<dd> 
-								<a class="app" href="" target="_self">
+								<a class="app" href="/borrow" target="_self">
 									<i class="ico b5"></i>
 									借书记录
 								</a>
